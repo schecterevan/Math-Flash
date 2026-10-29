@@ -24,6 +24,14 @@ npm run preview      # serve the production build (installable PWA)
 
 To use it on a tablet or phone on the same Wi-Fi, run `npm run dev -- --host` and open the printed network address. **Browsers only allow the microphone on `https://` or `localhost`.** On another device you therefore need HTTPS, for example by deploying `dist/` to any static host such as Netlify, Vercel or GitHub Pages.
 
+## Publish on GitHub Pages (free HTTPS)
+
+Pushing to `main` builds and publishes the app automatically (`.github/workflows/deploy.yml`). The build uses relative paths, so it works under the repository's sub-path.
+
+One-time setup on GitHub: **Settings → Pages → Build and deployment → Source: GitHub Actions**. Leave *Custom domain* empty unless you own a real domain such as `example.com`.
+
+The app is then at `https://<your-username>.github.io/<repo-name>/`. It's HTTPS, so the microphone works on phones and tablets.
+
 ## Which browsers support voice
 
 | Browser | Voice answers | Notes |

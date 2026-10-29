@@ -1,8 +1,9 @@
 // Minimal offline support: network-first for pages, cache-first for built
 // assets (their file names are content-hashed). Speech recognition itself
 // still needs the network in most browsers.
-const CACHE = 'number-hero-v1';
-const SHELL = ['/', '/index.html', '/manifest.webmanifest', '/icon.svg', '/icon-192.png', '/icon-512.png'];
+const CACHE = 'number-hero-v2';
+// Paths are relative to this file, so the app works at a site root or under a sub-path.
+const SHELL = ['./', './index.html', './manifest.webmanifest', './icon.svg', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
@@ -25,10 +26,10 @@ self.addEventListener('fetch', (e) => {
       fetch(req)
         .then((res) => {
           const copy = res.clone();
-          caches.open(CACHE).then((c) => c.put('/index.html', copy));
+          caches.open(CACHE).then((c) => c.put('./index.html', copy));
           return res;
         })
-        .catch(() => caches.match('/index.html')),
+        .catch(() => caches.match('./index.html')),
     );
     return;
   }
