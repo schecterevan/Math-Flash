@@ -27,12 +27,13 @@ export function GameScreen(props: {
   onDone: (r: GameResult | null) => void;
 }) {
   const g = useGame({ ...props, voice: props.profile.settings.voice });
-  const [padOpen, setPadOpen] = useState(!g.voiceOk);
+  const [padOpen, setPadOpen] = useState(!g.voiceOk || g.muted);
   const s = props.profile.settings;
 
   useEffect(() => {
-    if (!g.voiceOk) setPadOpen(true);
-  }, [g.voiceOk]);
+    // With the mic off or unavailable, the number pad is how he answers.
+    if (!g.voiceOk || g.muted) setPadOpen(true);
+  }, [g.voiceOk, g.muted]);
 
   useEffect(() => {
     if (g.phase === 'done' && g.record) {
@@ -47,7 +48,7 @@ export function GameScreen(props: {
 
   const fact = g.fact;
   const mood: Mood =
-    g.phase === 'correct' ? 'cheer' : g.phase === 'wrong' ? 'oops' : g.phase === 'reveal' ? 'thinking' : g.phase === 'hearing' || g.phase === 'listening' ? 'listening' : 'idle';
+    g.phase === 'correct' ? 'cheer' : g.phase === 'wrong' ? 'oops' : g.phase === 'reveal' ? 'thinking' : (g.phase === 'hearing' || g.phase === 'listening') && g.voiceOk && !g.muted ? 'listening' : 'idle';
   const hintsAllowed = props.mode === 'practice' && s.hints;
   const allowNegative = s.ops.sub.enabled && s.ops.sub.allowNegative;
 
@@ -63,7 +64,7 @@ export function GameScreen(props: {
         </div>
 
         <div className="flex flex-col items-center gap-2">
-          <MicStatus phase={g.phase} voiceOk={g.voiceOk} />
+          <MicStatus phase={g.phase} voiceOk={g.voiceOk} muted={g.muted} onToggleMute={g.toggleMute} />
           <HeardBubble g={g} />
         </div>
 

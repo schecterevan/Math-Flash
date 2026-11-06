@@ -57,6 +57,7 @@ If voice isn't available, the microphone is blocked, or recognition stops workin
 - Press ▶. The mic opens automatically for every question; the big icon shows *listening*, *hearing you*, ✓, ↻ (try again) or 👂 (say it again).
 - A small bubble shows what was heard ("thirteen" → 13), so recognition mistakes are easy to spot.
 - If an answer is wrong, the character wiggles and the child tries again. Points are never taken away.
+- Tap the big mic circle to **turn the microphone off** in a noisy room, and tap it again to turn it back on. While it's off, the game ignores all sound and the number pad opens. The choice is remembered on that device.
 - 💡 hint, 🔊 read the problem aloud (the mic pauses while it talks), ⌨️ number pad.
 - 🎨 dress up the character. Stars unlock worlds (themes). Every **win** (a finished session that earns at least one star) makes the character stronger, with 5 muscle levels at 1, 3, 6, 10 and 15 wins. Each win also adds **the next piece of an outfit**. There are 7 outfits with 10 pieces each, and the 10th piece is always a vehicle: race car driver (race car), rapper (limo), rock star (motorcycle), astronaut (rocket), wrestler (monster truck), soldier (tank) and Garnet & Gold (flaming spear and an Appaloosa horse). The child picks which outfit to build in Dress Up (🔨); a finished outfit moves on to the next one.
 

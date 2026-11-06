@@ -84,6 +84,11 @@ export function useGame(opts: GameOptions) {
   const profileRef = useRef(profile);
   const voiceRef = useRef(voiceOk);
   voiceRef.current = voiceOk;
+  // Child-controlled mute (for noisy rooms). Remembered on this device.
+  const [muted, setMuted] = useState(readMuted);
+  const mutedRef = useRef(muted);
+  /** The mic should be listening: voice works and isn't muted. */
+  const live = () => voiceRef.current && !mutedRef.current;
   const ended = useRef(false);
   const sched = useRef<SessionScheduler | null>(null);
   const session = useRef<SessionRecord>({
@@ -119,7 +124,7 @@ export function useGame(opts: GameOptions) {
 
   const listen = useCallback(() => {
     const cur = q.current;
-    if (!cur || !voiceRef.current || ended.current) return;
+    if (!cur || !live() || ended.current) return;
     const myToken = cur.token;
     const stale = () => !q.current || q.current.token !== myToken || q.current.locked;
     speech.listen({
@@ -158,7 +163,7 @@ export function useGame(opts: GameOptions) {
     q.current = {
       fact: f,
       token: token.current,
-      readyAt: voiceRef.current ? null : performance.now(),
+      readyAt: live() ? null : performance.now(),
       speechStartAt: null,
       firstKeyAt: null,
       firstMs: undefined,
@@ -173,7 +178,7 @@ export function useGame(opts: GameOptions) {
     setWrongCount(0);
     setShowHint(false);
     setLastMs(null);
-    if (voiceRef.current) {
+    if (live()) {
       setPhase('starting');
       listen();
     } else setPhase('listening');
@@ -337,6 +342,29 @@ export function useGame(opts: GameOptions) {
     setShowHint((h) => !h);
   };
 
+  const toggleMute = () => {
+    const next = !mutedRef.current;
+    mutedRef.current = next;
+    setMuted(next);
+    writeMuted(next);
+    const cur = q.current;
+    if (next) {
+      speech.stop();
+      // Keep the question going on the number pad; time from now if nothing typed yet.
+      if (cur && !cur.locked && cur.firstMs === undefined && cur.firstKeyAt === null) cur.readyAt = performance.now();
+      setHeard(null);
+      setPhase((p) => (p === 'starting' || p === 'hearing' || p === 'unclear' ? 'listening' : p));
+    } else if (cur && !cur.locked && voiceRef.current) {
+      // Unmuted mid-question: don't count the muted time against the child.
+      if (cur.firstMs === undefined) {
+        cur.readyAt = null;
+        cur.speechStartAt = null;
+      }
+      setPhase((p) => (p === 'listening' ? 'starting' : p));
+      listen();
+    }
+  };
+
   const readAloud = () => {
     const cur = q.current;
     if (!cur || cur.locked) return;
@@ -346,9 +374,9 @@ export function useGame(opts: GameOptions) {
     speakProblem(formatFact(cur.fact), () => {
       if (q.current?.token !== t || q.current.locked) return;
       // Don't count listening-to-the-question time against the child.
-      q.current.readyAt = voiceRef.current ? null : performance.now();
+      q.current.readyAt = live() ? null : performance.now();
       q.current.speechStartAt = null;
-      setPhase(voiceRef.current ? 'starting' : 'listening');
+      setPhase(live() ? 'starting' : 'listening');
       listen();
     });
   };
@@ -405,6 +433,8 @@ export function useGame(opts: GameOptions) {
     keypadInput,
     requestHint,
     readAloud,
+    muted,
+    toggleMute,
     continueAfterReveal,
     stop: () => finish(session.current.items.length >= 10 && questionLimit === Infinity && !settings.timeLimitMin),
     retryVoice: async () => {
@@ -420,3 +450,21 @@ export function useGame(opts: GameOptions) {
 }
 
 export type Game = ReturnType<typeof useGame>;
+
+const MUTE_KEY = 'number-hero:mic-muted';
+
+function readMuted(): boolean {
+  try {
+    return localStorage.getItem(MUTE_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+function writeMuted(on: boolean) {
+  try {
+    localStorage.setItem(MUTE_KEY, on ? '1' : '0');
+  } catch {
+    /* storage unavailable – mute just won't be remembered */
+  }
+}
